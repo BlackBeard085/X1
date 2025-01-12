@@ -3,18 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Stats</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TPU Metrics Sankey Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        #sankey {
+            width: 100%;
+            height: 600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.rawgit.com/d3/d3-sankey/v0.12.3/d3-sankey.v0.12.3.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Solana Network Stats</h1>
-        <div id="solana-stats">
-            <p><strong>Transactions Per Second (TPS):</strong> <span id="tps">Loading...</span></p>
-            <p><strong>Current Slot:</strong> <span id="current-slot">Loading...</span></p>
-            <p><strong>Current Leader:</strong> <span id="current-leader">Loading...</span></p>
-        </div>
-    </div>
-    <script src="script.js"></script>
+    <h1>TPU Metrics Sankey Flow</h1>
+    <div id="sankey"></div>
+    <p>
+        The TPU Metrics Sankey Flow visualization provides insights into the flow of transactions
+        through the Transaction Processing Unit (TPU) of the Solana blockchain. This diagram
+        illustrates the processing stages of transactions, including successful completions,
+        errors, and other relevant metrics such as transaction throughput and resource allocation.
+    </p>
+    
+    <script>
+        const data = {
+            nodes: [
+                { name: "Submitted Transactions" },
+                { name: "Processed Transactions" },
+                { name: "Successful Transactions" },
+                { name: "Failed Transactions" },
+                { name: "Dropped Transactions" }
+            ],
+            links: [
+                { source: 0, target: 1, value: 1000 }, // Submitted to Processed
+                { source: 1, target: 2, value: 800 },  // Processed to Successful
+                { source: 1, target: 3, value: 150 },  // Processed to Failed
+                { source: 1, target: 4, value: 50 }    // Processed to Dropped
+            ]
+        };
+
+        const width = 700;
+        const height = 600;
+
+        const svg = d3.select("#sankey").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const sankey = d3.sankey()
+            .nodeWidth(15)
+            .nodePadding(10)
+            .size([width, height]);
+        
+        const path = sankey.link();
+
+        sankey
+            .nodes(data.nodes)
+            .links(data.links)
+            .layout(32);
+
+        const link = svg.append("g").selectAll(".link")
+            .data(data.links)
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", path)
+            .style("stroke-width", d => Math.max(1, d.value))
+            .style("fill", "none")
+            .style("stroke", "#ccc");
+
+        const node = svg.append("g").selectAll(".node")
+            .data(data.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+
+        node.append("rect")
+            .attr("height", d => d.dy)
+            .attr("width", sankey.nodeWidth());
+
+        node.append("text")
+            .attr("x", -6)
+            .attr("y", d => d.dy / 2)
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .text(d => d.name);
+
+        node.append("title")
+            .text(d => d.name + "\n" + d.value);
+    </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Epoch Dashboard</title>
+    <title>Xolana Epoch Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,7 +25,7 @@
 </head>
 <body>
 
-    <h1>Solana Epoch Dashboard</h1>
+    <h1>Xolana Epoch Dashboard</h1>
     <div class="card">
         <h2>Current Epoch: <span id="current-epoch">Loading...</span></h2>
         <h3>Total Staked: <span id="total-staked">Loading...</span></h3>
@@ -36,35 +36,32 @@
     </div>
 
     <script>
-        const rpcUrl = "https://rpc.testnet.x1.xyz";
+        const rpcUrl = "https://xolana.xen.network"; // Updated RPC URL
 
         async function fetchEpochData() {
             try {
-                // Fetch the current epoch
+                // Assume this endpoint fetches the general API info
                 const response = await fetch(`${rpcUrl}/`);
                 const apiData = await response.json();
                 
                 const currentEpochEndpoint = apiData.endpoints.epoch;
-                
                 const responseEpoch = await fetch(currentEpochEndpoint);
                 const epochData = await responseEpoch.json();
-                
+
                 document.getElementById('current-epoch').innerText = epochData.epoch;
-                
+
                 const validatorNameEndpoint = apiData.endpoints.validator_info;
                 const responseValidatorName = await fetch(validatorNameEndpoint);
                 const validatorNameData = await responseValidatorName.json();
                 
-                const yourIdentity = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT";
+                const yourIdentity = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT"; // Update with your actual identity
                 const validatorNameObj = validatorNameData.find(val => val.identity === yourIdentity);
-                
                 document.getElementById('validator-name').innerText = validatorNameObj ? validatorNameObj.name : "Validator not found";
                 
                 const stakeInfoEndpoint = apiData.endpoints.stake;
-                
                 const responseStakeInfo = await fetch(stakeInfoEndpoint);
                 const stakeInfoData = await responseStakeInfo.json();
-                
+
                 document.getElementById('total-staked').innerText = stakeInfoData.total_staked;
                 document.getElementById('active-stake').innerText = stakeInfoData.active_stake;
                 document.getElementById('delinquent-stake').innerText = stakeInfoData.delinquent_stake;
@@ -74,7 +71,6 @@
                 const leaderScheduleData = await responseLeaderSchedule.json();
                 
                 const yourNextLeader = leaderScheduleData.find(leader => leader.identity === yourIdentity);
-                
                 document.getElementById('next-leader').innerText = yourNextLeader ? yourNextLeader.slot.toString() : "Not scheduled";
             } catch (error) {
                 console.error('Error fetching data:', error);

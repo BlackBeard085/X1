@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xolana Epoch Dashboard</title>
+    <title>Solana Mainnet Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,7 +25,7 @@
 </head>
 <body>
 
-    <h1>Xolana Epoch Dashboard</h1>
+    <h1>Solana Mainnet Dashboard</h1>
     <div class="card">
         <h2>Current Epoch: <span id="current-epoch">Loading...</span></h2>
         <h3>Total Staked: <span id="total-staked">Loading...</span></h3>
@@ -36,29 +36,27 @@
     </div>
 
     <script>
-        const rpcUrl = "https://xolana.xen.network"; // Updated RPC URL
+        const rpcUrlMainnet = "https://api.mainnet-beta.solana.com";
+        const validatorName = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT";
 
         async function fetchEpochData() {
             try {
-                // Assume this endpoint fetches the general API info
-                const response = await fetch(`${rpcUrl}/`);
+                const response = await fetch(`${rpcUrlMainnet}/`);
                 const apiData = await response.json();
                 
                 const currentEpochEndpoint = apiData.endpoints.epoch;
                 const responseEpoch = await fetch(currentEpochEndpoint);
                 const epochData = await responseEpoch.json();
-
                 document.getElementById('current-epoch').innerText = epochData.epoch;
-
-                const validatorNameEndpoint = apiData.endpoints.validator_info;
-                const responseValidatorName = await fetch(validatorNameEndpoint);
-                const validatorNameData = await responseValidatorName.json();
                 
-                const yourIdentity = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT"; // Update with your actual identity
-                const validatorNameObj = validatorNameData.find(val => val.identity === yourIdentity);
-                document.getElementById('validator-name').innerText = validatorNameObj ? validatorNameObj.name : "Validator not found";
+                const validatorInfoEndpoint = apiData.endpoints.validator_info;
+                const responseValidatorInfo = await fetch(validatorInfoEndpoint);
+                const validatorInfo = await responseValidatorInfo.json();
                 
-                const stakeInfoEndpoint = apiData.endpoints.stake;
+                const yourNextLeaderObj = validatorInfo.find(val => val.identity === validatorName);
+                document.getElementById('validator-name').innerText = yourNextLeaderObj ? yourNextLeaderObj.name : "Validator not found";
+                
+                const stakeInfoEndpoint = "${rpcUrlMainnet}/stake";
                 const responseStakeInfo = await fetch(stakeInfoEndpoint);
                 const stakeInfoData = await responseStakeInfo.json();
 
@@ -66,20 +64,18 @@
                 document.getElementById('active-stake').innerText = stakeInfoData.active_stake;
                 document.getElementById('delinquent-stake').innerText = stakeInfoData.delinquent_stake;
                 
-                const leaderScheduleEndpoint = apiData.endpoints.leader_schedule;
+                const leaderScheduleEndpoint = `${rpcUrlMainnet}/leader_schedule`;
                 const responseLeaderSchedule = await fetch(leaderScheduleEndpoint);
                 const leaderScheduleData = await responseLeaderSchedule.json();
                 
-                const yourNextLeader = leaderScheduleData.find(leader => leader.identity === yourIdentity);
+                const yourNextLeader = leaderScheduleData.find(leader => leader.identity === validatorName);
                 document.getElementById('next-leader').innerText = yourNextLeader ? yourNextLeader.slot.toString() : "Not scheduled";
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         }
 
-        // Fetch the data initially
         fetchEpochData();
-        // Optionally, refresh the data every 60 seconds
         setInterval(fetchEpochData, 60000);
     </script>
 

@@ -1,44 +1,91 @@
-const rpcUrl = "https://rpc.testnet.x1.xyz";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Epoch Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
 
-async function fetchEpochData() {
-    try {
-        // Fetch the current epoch
-        const response = await fetch(`${rpcUrl}/`);
-        const apiData = await response.json();
-        
-        const currentEpochEndpoint = apiData.endpoints.epoch;
-        
-        const responseEpoch = await fetch(currentEpochEndpoint);
-        const epochData = await responseEpoch.json();
-        
-        document.getElementById('current-epoch').innerText = epochData.epoch;
-        
-        const validatorNameEndpoint = apiData.endpoints.validator_info;
-        const responseValidatorName = await fetch(validatorNameEndpoint);
-        const validatorNameData = await responseValidatorName.json();
-        
-        const yourIdentity = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT";
-        const validatorName = validatorNameData.find(val => val.identity === yourIdentity).name;
-        
-        document.getElementById('validator-name').innerText = validatorName;
-        
-        const stakeInfoEndpoint = apiData.endpoints.stake;
-        
-        const responseStakeInfo = await fetch(stakeInfoEndpoint);
-        const stakeInfoData = await responseStakeInfo.json();
-        
-        document.getElementById('total-staked').innerText = stakeInfoData.total_staked;
-        document.getElementById('active-stake').innerText = stakeInfoData.active_stake;
-        document.getElementById('delinquent-stake').innerText = stakeInfoData.delinquent_stake;
-        
-        const leaderScheduleEndpoint = apiData.endpoints.leader_schedule;
-        const responseLeaderSchedule = await fetch(leaderScheduleEndpoint);
-        const leaderScheduleData = await responseLeaderSchedule.json();
-        
-        const yourNextLeader = leaderScheduleData.find(leader => leader.identity === yourIdentity);
-        
-        document.getElementById('next-leader').innerText = yourNextLeader ? yourNextLeader.slot.toString() : "Not scheduled";
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
+    <h1>Solana Epoch Dashboard</h1>
+    <div class="card">
+        <h2>Current Epoch: <span id="current-epoch">Loading...</span></h2>
+        <h3>Total Staked: <span id="total-staked">Loading...</span></h3>
+        <h3>Active Stake: <span id="active-stake">Loading...</span></h3>
+        <h3>Delinquent Stake: <span id="delinquent-stake">Loading...</span></h3>
+        <h3>Validator Name: <span id="validator-name">Loading...</span></h3>
+        <h3>Next Leader: <span id="next-leader">Loading...</span></h3>
+    </div>
+
+    <script>
+        const rpcUrl = "https://rpc.testnet.x1.xyz";
+
+        async function fetchEpochData() {
+            try {
+                // Fetch the current epoch
+                const response = await fetch(`${rpcUrl}/`);
+                const apiData = await response.json();
+                
+                const currentEpochEndpoint = apiData.endpoints.epoch;
+                
+                const responseEpoch = await fetch(currentEpochEndpoint);
+                const epochData = await responseEpoch.json();
+                
+                document.getElementById('current-epoch').innerText = epochData.epoch;
+                
+                const validatorNameEndpoint = apiData.endpoints.validator_info;
+                const responseValidatorName = await fetch(validatorNameEndpoint);
+                const validatorNameData = await responseValidatorName.json();
+                
+                const yourIdentity = "HNezNfYC8YyzZBADNaJ7ZuLseqFWmMsFqriGuccZ9kCT";
+                const validatorNameObj = validatorNameData.find(val => val.identity === yourIdentity);
+                
+                document.getElementById('validator-name').innerText = validatorNameObj ? validatorNameObj.name : "Validator not found";
+                
+                const stakeInfoEndpoint = apiData.endpoints.stake;
+                
+                const responseStakeInfo = await fetch(stakeInfoEndpoint);
+                const stakeInfoData = await responseStakeInfo.json();
+                
+                document.getElementById('total-staked').innerText = stakeInfoData.total_staked;
+                document.getElementById('active-stake').innerText = stakeInfoData.active_stake;
+                document.getElementById('delinquent-stake').innerText = stakeInfoData.delinquent_stake;
+                
+                const leaderScheduleEndpoint = apiData.endpoints.leader_schedule;
+                const responseLeaderSchedule = await fetch(leaderScheduleEndpoint);
+                const leaderScheduleData = await responseLeaderSchedule.json();
+                
+                const yourNextLeader = leaderScheduleData.find(leader => leader.identity === yourIdentity);
+                
+                document.getElementById('next-leader').innerText = yourNextLeader ? yourNextLeader.slot.toString() : "Not scheduled";
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Fetch the data initially
+        fetchEpochData();
+        // Optionally, refresh the data every 60 seconds
+        setInterval(fetchEpochData, 60000);
+    </script>
+
+</body>
+</html>

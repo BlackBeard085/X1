@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Status</title>
+    <title>Solana Current Status</title>
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.32.0/dist/web3.min.js"></script>
     <style>
         body {
@@ -11,50 +11,69 @@
             padding: 2em;
             background-color: #f1f1f1;
             color: #333;
+            text-align: center;
         }
         h1 {
-            text-align: center;
+            color: #0072ff;
         }
         .status {
             margin: 20px 0;
-            text-align: center;
+            font-size: 1.5em;
+        }
+        .status p {
+            margin: 10px 0;
+        }
+        .loading {
+            color: #999;
         }
     </style>
 </head>
 <body>
     <h1>Solana Current Status</h1>
     <div class="status">
-        <p><strong>Current Slot:</strong> <span id="currentSlot">Loading...</span></p>
-        <p><strong>Current Leader:</strong> <span id="currentLeader">Loading...</span></p>
-        <p><strong>Current TPS:</strong> <span id="currentTPS">Loading...</span></p>
+        <p><strong>Current Slot:</strong> <span id="currentSlot" class="loading">Loading...</span></p>
+        <p><strong>Current Leader:</strong> <span id="currentLeader" class="loading">Loading...</span></p>
+        <p><strong>Current TPS:</strong> <span id="currentTPS" class="loading">Loading...</span></p>
     </div>
 
     <script>
         const { clusterApiUrl, Connection } = window.solanaWeb3;
 
         async function fetchSolanaData() {
-            const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+            try {
+                const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
 
-            // Fetch current slot
-            const slot = await connection.getSlot();
-            document.getElementById('currentSlot').textContent = slot;
+                // Fetch current slot
+                const slot = await connection.getSlot();
+                document.getElementById('currentSlot').textContent = slot;
 
-            // Fetch current leader
-            const leaderSchedule = await connection.getVoteAccounts();
-            const leader = leaderSchedule.current.concat(leaderSchedule.delinquent)[0];
-            document.getElementById('currentLeader').textContent = leader.nodePubkey;
+                // Fetch current leader
+                const voteAccounts = await connection.getVoteAccounts();
+                const currentLeader = voteAccounts.current.length > 0 ? voteAccounts.current[0].nodePubkey : 'No Leader';
+                document.getElementById('currentLeader').textContent = currentLeader;
 
-            // Fetch current TPS (transactions per second)
-            const slotCount = await connection.getBlockHeight();
-            const header = await connection.getBlock(slotCount);
-            const currentTime = Date.now() / 1000;
-            const duration = currentTime - (header.blockTime || currentTime);
-            const tps = header.transactions.length / duration;
-            document.getElementById('currentTPS').textContent = tps.toFixed(2);
+                // Fetch current TPS (transactions per second)
+                const confirm = await connection.getConfirmedSignaturesForAddressAndContext(
+                    connection.publicKey,
+                    { limit: 1 }
+                );
+                const blockTime = confirm[0] ? confirm[0].blockTime : Math.floor(Date.now() / 1000);
+                const now = Math.floor(Date.now() / 1000);
+                const duration = (now - blockTime) || 1; // Avoid division by zero
+                const tps = confirm.length / duration;
+                document.getElementById('currentTPS').textContent = tps.toFixed(2);
+                
+            } catch (error) {
+                console.error("Error fetching Solana data: ", error);
+                document.getElementById('currentSlot').textContent = 'Error';
+                document.getElementById('currentLeader').textContent = 'Error';
+                document.getElementById('currentTPS').textContent = 'Error';
+            }
         }
 
-        // Update data every 10 seconds
+        // Initial fetch
         fetchSolanaData();
+        // Update data every 10 seconds
         setInterval(fetchSolanaData, 10000);
     </script>
 </body>

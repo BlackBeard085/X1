@@ -3,55 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Blockchain Data</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/@solana/web3.js/1.30.0/web3.min.js"></script>
+    <title>Solana Status</title>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.32.0/dist/web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            padding: 2em;
+            background-color: #f1f1f1;
+            color: #333;
         }
-        #data {
-            margin-top: 20px;
+        h1 {
+            text-align: center;
+        }
+        .status {
+            margin: 20px 0;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-
-    <h1>Solana Blockchain Data</h1>
-    <div id="data">
-        <p>Current Epoch: <span id="epoch"></span></p>
-        <p>Time Left on Current Epoch: <span id="time-left"></span></p>
-        <p>Current Slot: <span id="slot"></span></p>
-        <p>Transactions Per Second (TPS): <span id="tps"></span></p>
+    <h1>Solana Current Status</h1>
+    <div class="status">
+        <p><strong>Current Slot:</strong> <span id="currentSlot">Loading...</span></p>
+        <p><strong>Current Leader:</strong> <span id="currentLeader">Loading...</span></p>
+        <p><strong>Current TPS:</strong> <span id="currentTPS">Loading...</span></p>
     </div>
 
     <script>
-        async function fetchData() {
-            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+        const { clusterApiUrl, Connection } = window.solanaWeb3;
 
-            // Get the current epoch
-            const epochInfo = await connection.getEpochInfo();
-            document.getElementById('epoch').innerText = epochInfo.epoch;
+        async function fetchSolanaData() {
+            const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
 
-            // Calculate time left in current epoch
-            const remainingSlots = epochInfo.slotsInEpoch - epochInfo.slotIndex - 1;
-            const slotDuration = 400; // Average slot duration in milliseconds
-            const timeLeft = remainingSlots * slotDuration;
-            document.getElementById('time-left').innerText = (timeLeft / 1000).toFixed(2) + ' seconds';
+            // Fetch current slot
+            const slot = await connection.getSlot();
+            document.getElementById('currentSlot').textContent = slot;
 
-            // Get the current slot
-            document.getElementById('slot').innerText = epochInfo.slotIndex;
+            // Fetch current leader
+            const leaderSchedule = await connection.getVoteAccounts();
+            const leader = leaderSchedule.current.concat(leaderSchedule.delinquent)[0];
+            document.getElementById('currentLeader').textContent = leader.nodePubkey;
 
-            // Get recent performance
-            const { parentSlot, slot, samplePeriodSecs, numSlots } = await connection.getRecentPerformanceSamples(1);
-            const tps = (numSlots / samplePeriodSecs).toFixed(2);
-            document.getElementById('tps').innerText = tps;
+            // Fetch current TPS (transactions per second)
+            const slotCount = await connection.getBlockHeight();
+            const header = await connection.getBlock(slotCount);
+            const currentTime = Date.now() / 1000;
+            const duration = currentTime - (header.blockTime || currentTime);
+            const tps = header.transactions.length / duration;
+            document.getElementById('currentTPS').textContent = tps.toFixed(2);
         }
 
-        // Fetch data initially and then every 10 seconds
-        fetchData();
-        setInterval(fetchData, 1000);
+        // Update data every 10 seconds
+        fetchSolanaData();
+        setInterval(fetchSolanaData, 10000);
     </script>
-
 </body>
 </html>

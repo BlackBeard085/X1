@@ -33,6 +33,7 @@
     <div class="status">
         <p><strong>Current Slot:</strong> <span id="currentSlot" class="loading">Loading...</span></p>
         <p><strong>Current Leader:</strong> <span id="currentLeader" class="loading">Loading...</span></p>
+        <p><strong>Current Block Time:</strong> <span id="currentBlockTime" class="loading">Loading...</span></p>
         <p><strong>Current TPS:</strong> <span id="currentTPS" class="loading">Loading...</span></p>
     </div>
 
@@ -41,34 +42,41 @@
 
         async function fetchSolanaData() {
             try {
-                const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+                const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
                 // Fetch current slot
                 const slot = await connection.getSlot();
                 document.getElementById('currentSlot').textContent = slot;
 
-                // Fetch current leader
-                const voteAccounts = await connection.getVoteAccounts();
-                const currentLeader = voteAccounts.current.length > 0 ? voteAccounts.current[0].nodePubkey : 'No Leader';
-                document.getElementById('currentLeader').textContent = currentLeader;
+                // Fetch current block time
+                const blockTime = await connection.getBlockTime(slot);
+                document.getElementById('currentBlockTime').textContent = blockTime ? new Date(blockTime * 1000).toLocaleString() : 'No data';
 
-                // Fetch current block information to calculate TPS
+                // Fetch block details
                 const block = await connection.getBlock(slot);
-                const tps = block ? (block.transactions.length / (block.blockTime ? (Date.now() / 1000 - block.blockTime) : 1)).toFixed(2) : 'Error';
+                const transactionCount = block ? block.transactions.length : 0;
+
+                // Calculate TPS
+                const tps = block && block.blockTime ? (transactionCount / (Date.now() / 1000 - block.blockTime)).toFixed(2) : 0;
                 document.getElementById('currentTPS').textContent = tps;
+
+                // Fetch current slot leader
+                const slotLeader = await connection.getSlotLeader();
+                document.getElementById('currentLeader').textContent = slotLeader;
 
             } catch (error) {
                 console.error("Error fetching Solana data: ", error);
                 document.getElementById('currentSlot').textContent = 'Error';
                 document.getElementById('currentLeader').textContent = 'Error';
+                document.getElementById('currentBlockTime').textContent = 'Error';
                 document.getElementById('currentTPS').textContent = 'Error';
             }
         }
 
-        // Initial fetch
+        // Initialize and fetch data
         fetchSolanaData();
-        // Update data every 10 seconds
-        setInterval(fetchSolanaData, 10000);
+        // Update data every 1 second
+        setInterval(fetchSolanaData, 1000);
     </script>
 </body>
 </html>

@@ -52,17 +52,11 @@
                 const currentLeader = voteAccounts.current.length > 0 ? voteAccounts.current[0].nodePubkey : 'No Leader';
                 document.getElementById('currentLeader').textContent = currentLeader;
 
-                // Fetch current TPS (transactions per second)
-                const confirm = await connection.getConfirmedSignaturesForAddressAndContext(
-                    connection.publicKey,
-                    { limit: 1 }
-                );
-                const blockTime = confirm[0] ? confirm[0].blockTime : Math.floor(Date.now() / 1000);
-                const now = Math.floor(Date.now() / 1000);
-                const duration = (now - blockTime) || 1; // Avoid division by zero
-                const tps = confirm.length / duration;
-                document.getElementById('currentTPS').textContent = tps.toFixed(2);
-                
+                // Fetch current block information to calculate TPS
+                const block = await connection.getBlock(slot);
+                const tps = block ? (block.transactions.length / (block.blockTime ? (Date.now() / 1000 - block.blockTime) : 1)).toFixed(2) : 'Error';
+                document.getElementById('currentTPS').textContent = tps;
+
             } catch (error) {
                 console.error("Error fetching Solana data: ", error);
                 document.getElementById('currentSlot').textContent = 'Error';

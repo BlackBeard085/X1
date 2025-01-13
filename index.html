@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Epoch Information</title>
+    <title>Solana Stats</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Solana Epoch Information</h1>
-        <p>Current Slot: <span id="current-slot">Loading...</span></p>
-        <p>Time Left in Epoch: <span id="epoch-time-left">Loading...</span></p>
-        <p>Transactions Per Second (TPS): <span id="current-tps">Loading...</span></p>
+        <h1>Solana Network Stats</h1>
+        <div id="solana-stats">
+            <p><strong>Current Slot:</strong> <span id="current-slot">Loading...</span></p>
+            <p><strong>Time Left in Epoch:</strong> <span id="time-left">Loading...</span></p>
+            <p><strong>Transactions Per Second (TPS):</strong> <span id="tps">Loading...</span></p>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

@@ -3,24 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Info</title>
+    <title>Solana Blockchain Information</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
         }
         #info {
-            margin-top: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        p {
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <h1>Solana Blockchain Information</h1>
     <div id="info">
-        <p>Current Slot: <span id="current-slot"></span></p>
-        <p>Time Left in Current Slot: <span id="time-left"></span></p>
-        <p>Transactions Per Second (TPS): <span id="tps"></span></p>
+        <p>Current Slot: <span id="current-slot">Loading...</span></p>
+        <p>Time Left in Current Slot: <span id="time-left">Loading...</span></p>
+        <p>Transactions Per Second (TPS): <span id="tps">Loading...</span></p>
     </div>
+    
     <script src="https://unpkg.com/@solana/web3.js"></script>
     <script src="script.js"></script>
 </body>
